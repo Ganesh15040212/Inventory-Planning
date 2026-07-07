@@ -1730,8 +1730,9 @@ const exportStockValuationPDF = async (req, res) => {
 const getOverallStockData = async (req, res) => {
   try {
     const pool = await getPool();
-    const { date, groupCode, categoryCode } = req.query;
+    const { date, groupCode, categoryCode, includeZero } = req.query;
     const targetDate = date || new Date().toISOString().slice(0, 10);
+    const isZeroEnabled = includeZero === 'true' || includeZero === true;
 
     let whereFilter = '';
     if (groupCode && groupCode !== 'undefined' && groupCode !== 'null' && String(groupCode).trim() !== '') {
@@ -1745,6 +1746,9 @@ const getOverallStockData = async (req, res) => {
       if (catCodes.length > 0) {
         whereFilter += ` AND d.CategoryCode IN (${catCodes.join(',')})`;
       }
+    }
+    if (!isZeroEnabled) {
+      whereFilter += ` AND ISNULL(stock.Qty, 0) <> 0`;
     }
 
     const result = await pool.request()
@@ -1766,12 +1770,11 @@ const getOverallStockData = async (req, res) => {
         FROM mstitem i
         LEFT JOIN mstsize s ON i.SizeCode = s.code
         LEFT JOIN mstitemdetail d ON i.code = d.code
-        INNER JOIN (
+        LEFT JOIN (
           SELECT ItemCode, SUM(Quantity) AS Qty
           FROM stmStockLedger
           WHERE DocumentDate <= @targetDate AND StockPointCode = 2
           GROUP BY ItemCode
-          HAVING SUM(Quantity) <> 0
         ) stock ON i.code = stock.ItemCode
         LEFT JOIN (
           SELECT ItemCode, RunningAvgRateBC
@@ -1836,8 +1839,9 @@ const getOverallStockData = async (req, res) => {
 const exportOverallStockExcel = async (req, res) => {
   try {
     const pool = await getPool();
-    const { date, groupCode, categoryCode } = req.query;
+    const { date, groupCode, categoryCode, includeZero } = req.query;
     const targetDate = date || new Date().toISOString().slice(0, 10);
+    const isZeroEnabled = includeZero === 'true' || includeZero === true;
 
     let whereFilter = '';
     if (groupCode && groupCode !== 'undefined' && groupCode !== 'null' && String(groupCode).trim() !== '') {
@@ -1851,6 +1855,9 @@ const exportOverallStockExcel = async (req, res) => {
       if (catCodes.length > 0) {
         whereFilter += ` AND d.CategoryCode IN (${catCodes.join(',')})`;
       }
+    }
+    if (!isZeroEnabled) {
+      whereFilter += ` AND ISNULL(stock.Qty, 0) <> 0`;
     }
 
     const result = await pool.request()
@@ -1872,12 +1879,11 @@ const exportOverallStockExcel = async (req, res) => {
         FROM mstitem i
         LEFT JOIN mstsize s ON i.SizeCode = s.code
         LEFT JOIN mstitemdetail d ON i.code = d.code
-        INNER JOIN (
+        LEFT JOIN (
           SELECT ItemCode, SUM(Quantity) AS Qty
           FROM stmStockLedger
           WHERE DocumentDate <= @targetDate AND StockPointCode = 2
           GROUP BY ItemCode
-          HAVING SUM(Quantity) <> 0
         ) stock ON i.code = stock.ItemCode
         LEFT JOIN (
           SELECT ItemCode, RunningAvgRateBC
@@ -2082,8 +2088,9 @@ const exportOverallStockExcel = async (req, res) => {
 const exportOverallStockPDF = async (req, res) => {
   try {
     const pool = await getPool();
-    const { date, groupCode, categoryCode } = req.query;
+    const { date, groupCode, categoryCode, includeZero } = req.query;
     const targetDate = date || new Date().toISOString().slice(0, 10);
+    const isZeroEnabled = includeZero === 'true' || includeZero === true;
 
     let whereFilter = '';
     if (groupCode && groupCode !== 'undefined' && groupCode !== 'null' && String(groupCode).trim() !== '') {
@@ -2097,6 +2104,9 @@ const exportOverallStockPDF = async (req, res) => {
       if (catCodes.length > 0) {
         whereFilter += ` AND d.CategoryCode IN (${catCodes.join(',')})`;
       }
+    }
+    if (!isZeroEnabled) {
+      whereFilter += ` AND ISNULL(stock.Qty, 0) <> 0`;
     }
 
     const result = await pool.request()
@@ -2118,12 +2128,11 @@ const exportOverallStockPDF = async (req, res) => {
         FROM mstitem i
         LEFT JOIN mstsize s ON i.SizeCode = s.code
         LEFT JOIN mstitemdetail d ON i.code = d.code
-        INNER JOIN (
+        LEFT JOIN (
           SELECT ItemCode, SUM(Quantity) AS Qty
           FROM stmStockLedger
           WHERE DocumentDate <= @targetDate AND StockPointCode = 2
           GROUP BY ItemCode
-          HAVING SUM(Quantity) <> 0
         ) stock ON i.code = stock.ItemCode
         LEFT JOIN (
           SELECT ItemCode, RunningAvgRateBC

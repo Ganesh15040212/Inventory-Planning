@@ -58,6 +58,7 @@ export default function SalesReport() {
   const [stockGroup, setStockGroup] = useState('');
   const [stockCategories, setStockCategories] = useState([]);
   const [stockCategory, setStockCategory] = useState('');
+  const [stockIncludeZero, setStockIncludeZero] = useState(false);
 
   // Save parameters to localStorage on change
   useEffect(() => { localStorage.setItem('inv_sales_from', salesFromDate); }, [salesFromDate]);
@@ -170,7 +171,7 @@ export default function SalesReport() {
     setStockPreviewLoading(true);
     try {
       const token = localStorage.getItem('inv_token');
-      const url = `/api/export/overall-stock-pdf?date=${stockDate}&groupCode=${stockGroup}&categoryCode=${stockCategory}`;
+      const url = `/api/export/overall-stock-pdf?date=${stockDate}&groupCode=${stockGroup}&categoryCode=${stockCategory}&includeZero=${stockIncludeZero}`;
       const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error('Stock report PDF service returned error');
       const blob = await res.blob();
@@ -191,7 +192,7 @@ export default function SalesReport() {
     setStockExporting(format);
     try {
       const token = localStorage.getItem('inv_token');
-      const url = `/api/export/overall-stock-${format}?date=${stockDate}&groupCode=${stockGroup}&categoryCode=${stockCategory}`;
+      const url = `/api/export/overall-stock-${format}?date=${stockDate}&groupCode=${stockGroup}&categoryCode=${stockCategory}&includeZero=${stockIncludeZero}`;
       const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error('Export service returned error');
       const blob = await res.blob();
@@ -211,7 +212,7 @@ export default function SalesReport() {
   const handlePreviewStockExcel = async () => {
     setStockPreviewLoading(true);
     try {
-      const res = await api.get(`/export/overall-stock-data?date=${stockDate}&groupCode=${stockGroup}&categoryCode=${stockCategory}`);
+      const res = await api.get(`/export/overall-stock-data?date=${stockDate}&groupCode=${stockGroup}&categoryCode=${stockCategory}&includeZero=${stockIncludeZero}`);
       setStockExcelData(res.data.data || []);
       setShowStockExcelPreview(true);
       toast.success('Stock Excel report preview generated!');
@@ -507,6 +508,20 @@ export default function SalesReport() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Enable 0 QTY Toggle */}
+        <div className="flex items-center gap-2 pt-3">
+          <label className="relative inline-flex items-center cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={stockIncludeZero}
+              onChange={e => setStockIncludeZero(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 peer-checked:after:bg-emerald-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-950/50 peer-checked:border peer-checked:border-emerald-800/30 border border-slate-700/50"></div>
+            <span className="ml-2 text-xs font-bold text-slate-300">Enable 0 QTY</span>
+          </label>
         </div>
 
         {/* Action Buttons Row */}
