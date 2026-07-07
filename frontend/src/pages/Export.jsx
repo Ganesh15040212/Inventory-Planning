@@ -1125,7 +1125,7 @@ export default function ExportPage() {
           return (
             <div className="border border-slate-800/60 rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-slate-800/60">
                       <th className="text-left px-4 py-3 font-semibold text-slate-300 uppercase tracking-wider">Category</th>
@@ -1138,10 +1138,10 @@ export default function ExportPage() {
                     {svRows.map((r, i) => (
                       <tr key={r.categoryCode} className={i % 2 === 0 ? 'bg-slate-900/20' : 'bg-slate-900/40'}>
                         <td className="px-4 py-3 font-medium text-slate-200">{r.categoryName}</td>
-                        <td className="px-4 py-3 text-center text-slate-300 font-mono tabular-nums">
+                        <td className="px-4 py-3 text-center text-slate-300 tabular-nums">
                           {NUM(r.qty, 0)}
                         </td>
-                        <td className="px-4 py-3 text-right text-emerald-400 font-mono tabular-nums font-semibold">
+                        <td className="px-4 py-3 text-right text-emerald-400 tabular-nums font-semibold">
                           ₹{NUM(r.value, 2)}
                         </td>
                         <td className="px-2 py-3 text-center">
@@ -1157,11 +1157,11 @@ export default function ExportPage() {
                     ))}
                     {/* TOTAL row */}
                     <tr className="bg-violet-900/20 border-t-2 border-violet-500/30">
-                      <td className="px-4 py-3 font-bold text-violet-300 uppercase tracking-wide text-[11px]">Total</td>
-                      <td className="px-4 py-3 text-center font-bold text-white font-mono tabular-nums">
+                      <td className="px-4 py-3 font-bold text-violet-300 uppercase tracking-wide text-xs">Total</td>
+                      <td className="px-4 py-3 text-center font-bold text-white tabular-nums">
                         {NUM(totalQty, 0)}
                       </td>
-                      <td className="px-4 py-3 text-right font-bold text-violet-300 font-mono tabular-nums text-[13px]">
+                      <td className="px-4 py-3 text-right font-bold text-violet-300 tabular-nums text-sm">
                         ₹{NUM(totalValue, 2)}
                       </td>
                       <td></td>

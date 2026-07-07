@@ -161,12 +161,12 @@ export default function Dashboard() {
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="name" stroke="#475569" tick={{ fontSize: 11 }} />
                 <YAxis stroke="#475569" tick={{ fontSize: 11 }} />
                 <Tooltip
-                  contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }}
-                  labelStyle={{ color: '#94a3b8' }}
+                  contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', color: '#0f172a', borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: '#475569' }}
                 />
                 <Area type="monotone" dataKey="stock" stroke="#3670f7" strokeWidth={2} fill="url(#stockGrad)" name="Stock" />
                 <Area type="monotone" dataKey="requirement" stroke="#10b981" strokeWidth={2} fill="url(#reqGrad)" name="Requirement" />
