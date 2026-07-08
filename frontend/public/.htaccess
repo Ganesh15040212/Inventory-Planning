@@ -1,0 +1,11 @@
+Options -MultiViews
+RewriteEngine On
+
+# Pass the Authorization header to cPanel / Passenger Node.js applications
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+
+# Fallback for React Router client-side routing
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [QSA,L]
