@@ -37,6 +37,40 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
 });
 
+// Database Diagnostic Health check
+app.get('/api/health/db', async (_req, res) => {
+  const { getPool } = require('./config/db');
+  try {
+    const pool = await getPool();
+    const result = await pool.request().query('SELECT @@version as version');
+    res.json({
+      status: 'connected',
+      timestamp: new Date().toISOString(),
+      config: {
+        server: process.env.DB_SERVER || 'default (localhost)',
+        database: process.env.DB_DATABASE || process.env.DB_NAME || 'default (RIINDIASILKSNEW)',
+        user: process.env.DB_USER || 'none',
+        env: process.env.NODE_ENV || 'not set'
+      },
+      version: result.recordset[0].version
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      message: 'Database connection failed',
+      config: {
+        server: process.env.DB_SERVER || 'default (localhost)',
+        database: process.env.DB_DATABASE || process.env.DB_NAME || 'default (RIINDIASILKSNEW)',
+        user: process.env.DB_USER || 'none',
+        env: process.env.NODE_ENV || 'not set'
+      },
+      error: err.message,
+      code: err.code
+    });
+  }
+});
+
 // 404 handler
 app.use((_req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });

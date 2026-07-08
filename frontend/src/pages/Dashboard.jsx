@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
@@ -46,7 +46,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color, loading }) => (
 );
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [recentHistory, setRecentHistory] = useState([]);
@@ -54,7 +54,7 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const statsRes = await api.get('/items/stats');
       const data = statsRes.data.data;
@@ -68,9 +68,18 @@ export default function Dashboard() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { fetchData(); }, []);
+  // Guard: redirect to login via React Router (no page reload) if not authenticated.
+  // This prevents the API from firing a 401 which triggers window.location.replace,
+  // causing a full page reload loop.
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', { replace: true });
+      return;
+    }
+    fetchData();
+  }, [isAuthenticated, navigate, fetchData]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -88,19 +97,19 @@ export default function Dashboard() {
   const statCards = [
     { title: 'Total Items in Master', value: stats?.totalItems, subtitle: 'Items in ERP database', icon: Package, color: 'bg-brand-600' },
     { title: 'Total Stock On Hand', value: stats?.totalStock, subtitle: 'At Shop stock point', icon: BarChart2, color: 'bg-emerald-600' },
-    { 
-      title: 'Last Month Sales', 
-      value: stats?.monthSales !== undefined ? `Rs. ${stats.monthSales.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` : '—', 
-      subtitle: 'Amount sold this month', 
-      icon: TrendingUp, 
-      color: 'bg-purple-600' 
+    {
+      title: 'Last Month Sales',
+      value: stats?.monthSales !== undefined ? `Rs. ${stats.monthSales.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` : '—',
+      subtitle: 'Amount sold this month',
+      icon: TrendingUp,
+      color: 'bg-purple-600'
     },
-    { 
-      title: 'Last One Year Sales', 
-      value: stats?.yearSales !== undefined ? `Rs. ${stats.yearSales.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` : '—', 
-      subtitle: 'Amount sold this year', 
-      icon: TrendingUp, 
-      color: 'bg-orange-500' 
+    {
+      title: 'Last One Year Sales',
+      value: stats?.yearSales !== undefined ? `Rs. ${stats.yearSales.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` : '—',
+      subtitle: 'Amount sold this year',
+      icon: TrendingUp,
+      color: 'bg-orange-500'
     },
   ];
 
