@@ -863,14 +863,14 @@ export default function ExportPage() {
       { label: 'Item Name', value: tempItem.itemName },
       { label: 'Size / Model', value: tempItem.sizeModel },
       { label: 'Supplier', value: tempItem.supplierName },
-      { label: 'Cost', value: `₹${NUM(tempItem.cost, 2)}` },
+      { label: 'Cost', value: `${NUM(tempItem.cost, 2)}` },
       { label: 'Stock On Hand', value: NUM(tempItem.stockOnHand, 0) },
       { label: `Last ${monthsCount}m Sales`, value: NUM(tempItem.lastOneMonthSale, 0) },
       { label: 'Avg Per Month', value: NUM(tempItem.averagePerMonth, 0) },
       { label: `Last ${yearsCount}y Sales`, value: NUM(tempItem.lastOneYearSale, 0) },
       { label: 'System Requirement', value: tempItem.systemRequirement > 0 ? NUM(tempItem.systemRequirement, 0) : `(${NUM(Math.abs(tempItem.systemRequirement), 0)})`, color: tempItem.systemRequirement > 0 ? 'text-red-400' : 'text-emerald-400' },
       { label: 'After Purchase Stock', value: NUM(tempItem.afterPurchaseStock, 0), color: 'text-brand-300 font-bold' },
-      { label: 'Purchase Amount', value: `₹${NUM(tempItem.purchaseAmount, 2)}`, color: 'text-emerald-400 font-bold' },
+      { label: 'Purchase Amount', value: `${NUM(tempItem.purchaseAmount, 2)}`, color: 'text-emerald-400 font-bold' },
       { label: 'Rotation of Month', value: NUM(tempItem.rotation, 2) },
     ];
 
@@ -1130,7 +1130,7 @@ export default function ExportPage() {
                     <tr className="bg-slate-800/60">
                       <th className="text-left px-4 py-3 font-semibold text-slate-300 uppercase tracking-wider">Category</th>
                       <th className="text-center px-4 py-3 font-semibold text-slate-300 uppercase tracking-wider">QTY</th>
-                      <th className="text-right px-4 py-3 font-semibold text-slate-300 uppercase tracking-wider">VALUE ₹</th>
+                      <th className="text-right px-4 py-3 font-semibold text-slate-300 uppercase tracking-wider">VALUE</th>
                       <th className="w-10 px-2 py-3"></th>
                     </tr>
                   </thead>
@@ -1142,7 +1142,7 @@ export default function ExportPage() {
                           {NUM(r.qty, 0)}
                         </td>
                         <td className="px-4 py-3 text-right text-emerald-400 tabular-nums font-semibold">
-                          ₹{NUM(r.value, 2)}
+                          {NUM(r.value, 2)}
                         </td>
                         <td className="px-2 py-3 text-center">
                           <button
@@ -1162,7 +1162,7 @@ export default function ExportPage() {
                         {NUM(totalQty, 0)}
                       </td>
                       <td className="px-4 py-3 text-right font-bold text-violet-300 tabular-nums text-sm">
-                        ₹{NUM(totalValue, 2)}
+                        {NUM(totalValue, 2)}
                       </td>
                       <td></td>
                     </tr>
@@ -1785,7 +1785,7 @@ export default function ExportPage() {
 
                     {/* Purchase Amount Total */}
                     <td className="px-3 py-3.5 text-center bg-emerald-950/15 font-extrabold text-emerald-400">
-                      ₹{NUM(batchItems.reduce((acc, item) => acc + (parseFloat(item.purchaseAmount) || 0), 0), 2)}
+                      {NUM(batchItems.reduce((acc, item) => acc + (parseFloat(item.purchaseAmount) || 0), 0), 2)}
                     </td>
 
                     {/* Rotation */}
@@ -2099,8 +2099,8 @@ export default function ExportPage() {
                               <td className="border-r border-slate-200 px-2 py-2 text-center font-semibold">{NUM(item.lastOneMonthSale, 0)}</td>
                               <td className="border-r border-slate-200 px-2 py-2 text-center">{NUM(item.averagePerMonth, 0)}</td>
                               <td className="border-r border-slate-200 px-2 py-2 text-center font-semibold">{NUM(item.lastOneYearSale, 0)}</td>
-                              <td className="border-r border-slate-200 px-2 py-2 text-right font-mono">₹{NUM(item.cost, 2)}</td>
-                              <td className="border-r border-slate-200 px-2 py-2 text-right font-mono font-bold text-emerald-600">₹{NUM(item.purchaseAmount, 2)}</td>
+                              <td className="border-r border-slate-200 px-2 py-2 text-right font-mono">{NUM(item.cost, 2)}</td>
+                              <td className="border-r border-slate-200 px-2 py-2 text-right font-mono font-bold text-emerald-600">{NUM(item.purchaseAmount, 2)}</td>
                               <td className="border-r border-slate-200 px-2 py-2 text-center font-mono">{NUM(item.rotation, 2)}</td>
                               <td className="px-2 py-2 text-slate-600 truncate max-w-[150px]" title={item.supplierName}>{item.supplierName}</td>
                             </tr>
@@ -2138,7 +2138,7 @@ export default function ExportPage() {
                           <td className="border-r border-slate-200 px-2 py-2"></td>
                           <td className="border-r border-slate-200 px-2 py-2"></td>
                           <td className="border-r border-slate-200 px-2 py-2 text-right font-mono font-bold text-emerald-600">
-                            ₹{NUM(batchItems.filter((_, idx) => selectedIndices.has(idx)).reduce((acc, curr) => acc + (parseFloat(curr.purchaseAmount) || 0), 0), 2)}
+                            {NUM(batchItems.filter((_, idx) => selectedIndices.has(idx)).reduce((acc, curr) => acc + (parseFloat(curr.purchaseAmount) || 0), 0), 2)}
                           </td>
                           <td className="border-r border-slate-200 px-2 py-2"></td>
                         </tr>
@@ -2153,7 +2153,7 @@ export default function ExportPage() {
                             <td className="border-r border-slate-200 px-2 py-1.5 text-center"></td>
                             <td className="border-r border-slate-200 px-2 py-1.5 text-left font-bold text-slate-800">CATEGORY</td>
                             <td className="border-r border-slate-200 px-2 py-1.5 text-center font-bold text-slate-800">QTY</td>
-                            <td className="border-r border-slate-200 px-2 py-1.5 text-right font-bold text-slate-800">VALUE (₹)</td>
+                            <td className="border-r border-slate-200 px-2 py-1.5 text-right font-bold text-slate-800">VALUE</td>
                             {Array.from({ length: 10 }).map((_, i) => (
                               <td key={i} className="border-r border-slate-200 last:border-r-0"></td>
                             ))}
@@ -2165,7 +2165,7 @@ export default function ExportPage() {
                               <td className="border-r border-slate-200 px-2 py-1.5"></td>
                               <td className="border-r border-slate-200 px-2 py-1.5 font-semibold text-slate-800">{r.categoryName}</td>
                               <td className="border-r border-slate-200 px-2 py-1.5 text-center font-mono">{NUM(r.qty, 0)}</td>
-                              <td className="border-r border-slate-200 px-2 py-1.5 text-right font-mono font-bold text-emerald-600">₹{NUM(r.value, 2)}</td>
+                              <td className="border-r border-slate-200 px-2 py-1.5 text-right font-mono font-bold text-emerald-600">{NUM(r.value, 2)}</td>
                               {Array.from({ length: 10 }).map((_, i) => (
                                 <td key={i} className="border-r border-slate-200 last:border-r-0"></td>
                               ))}
@@ -2180,7 +2180,7 @@ export default function ExportPage() {
                               {NUM(svRows.reduce((acc, curr) => acc + (parseFloat(curr.qty) || 0), 0), 0)}
                             </td>
                             <td className="border-r border-slate-200 px-2 py-1.5 text-right font-mono text-emerald-600 font-extrabold">
-                              ₹{NUM(svRows.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0), 2)}
+                              {NUM(svRows.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0), 2)}
                             </td>
                             {Array.from({ length: 10 }).map((_, i) => (
                               <td key={i} className="border-r border-slate-200 last:border-r-0"></td>
@@ -2311,7 +2311,7 @@ export default function ExportPage() {
                         <th className="border-r border-slate-200 px-2 py-2 w-10">SL</th>
                         <th className="border-r border-slate-200 px-2 py-2 text-left w-56">CATEGORY</th>
                         <th className="border-r border-slate-200 px-2 py-2 w-20">QTY</th>
-                        <th className="px-2 py-2 w-24">VALUE (₹)</th>
+                        <th className="px-2 py-2 w-24">VALUE</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -2324,7 +2324,7 @@ export default function ExportPage() {
                             <td className="border-r border-slate-200 px-2 py-2 text-center font-mono text-slate-400">{idx + 1}</td>
                             <td className="border-r border-slate-200 px-2 py-2 font-semibold text-slate-800 truncate" title={item.categoryName}>{item.categoryName}</td>
                             <td className="border-r border-slate-200 px-2 py-2 text-center font-semibold font-mono">{NUM(quantity, 0)}</td>
-                            <td className="px-2 py-2 text-right font-mono font-bold text-emerald-600">₹{NUM(value, 2)}</td>
+                            <td className="px-2 py-2 text-right font-mono font-bold text-emerald-600">{NUM(value, 2)}</td>
                           </tr>
                         );
                       })}
@@ -2336,7 +2336,7 @@ export default function ExportPage() {
                           {NUM(svRows.reduce((acc, curr) => acc + (parseFloat(curr.qty) || 0), 0), 0)}
                         </td>
                         <td className="px-2 py-2 text-right font-mono text-emerald-600 font-extrabold">
-                          ₹{NUM(svRows.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0), 2)}
+                          {NUM(svRows.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0), 2)}
                         </td>
                       </tr>
                     </tbody>

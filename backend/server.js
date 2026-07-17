@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const authRoutes = require('./routes/auth');
 const itemRoutes = require('./routes/items');
@@ -10,15 +11,24 @@ const exportRoutes = require('./routes/export');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+// Allow localhost AND any device on the local office network (192.168.x.x / 10.x.x.x)
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return callback(null, true);
+    if (/^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return callback(null, true);
+    if (/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin)) return callback(null, true);
+    if (/^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/.test(origin)) return callback(null, true);
+    callback(null, true);
+  },
   credentials: true,
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logger (dev)
+// ─── REQUEST LOGGER (DEV ONLY) ────────────────────────────────────────────────
 if (process.env.NODE_ENV === 'development') {
   app.use((req, _res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
@@ -26,18 +36,17 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Routes
+// ─── API ROUTES ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/export', exportRoutes);
 
-// Health check
+// ─── HEALTH CHECKS ────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
 });
 
-// Database Diagnostic Health check
 app.get('/api/health/db', async (_req, res) => {
   const { getPool } = require('./config/db');
   try {
@@ -48,7 +57,7 @@ app.get('/api/health/db', async (_req, res) => {
       timestamp: new Date().toISOString(),
       config: {
         server: process.env.DB_SERVER || 'default (localhost)',
-        database: process.env.DB_DATABASE || process.env.DB_NAME || 'default (RIINDIASILKSNEW)',
+        database: process.env.DB_DATABASE || process.env.DB_NAME || 'default',
         user: process.env.DB_USER || 'none',
         env: process.env.NODE_ENV || 'not set'
       },
@@ -61,7 +70,7 @@ app.get('/api/health/db', async (_req, res) => {
       message: 'Database connection failed',
       config: {
         server: process.env.DB_SERVER || 'default (localhost)',
-        database: process.env.DB_DATABASE || process.env.DB_NAME || 'default (RIINDIASILKSNEW)',
+        database: process.env.DB_DATABASE || process.env.DB_NAME || 'default',
         user: process.env.DB_USER || 'none',
         env: process.env.NODE_ENV || 'not set'
       },
@@ -71,20 +80,33 @@ app.get('/api/health/db', async (_req, res) => {
   }
 });
 
-// 404 handler
-app.use((_req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+// ─── SERVE REACT FRONTEND (PRODUCTION) ───────────────────────────────────────
+// Points to the compiled React build inside frontend/dist
+const distPath = path.join(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(distPath));
+
+// React Router fallback: serves index.html for all non-API routes
+// This ensures refreshing on /dashboard, /export, /sales-report works correctly
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ success: false, message: 'API route not found' });
+  }
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
-// Error handler
+// ─── ERROR HANDLER ────────────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`\n🚀 Inventory Planning API running on http://localhost:${PORT}`);
-  console.log(`📋 API Health: http://localhost:${PORT}/api/health\n`);
+// ─── START SERVER ─────────────────────────────────────────────────────────────
+// '0.0.0.0' makes the server accessible from any device on the local network
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n🚀 Inventory Planning App running!`);
+  console.log(`   ➜ Local:   http://localhost:${PORT}`);
+  console.log(`   ➜ Network: http://<your-local-ip>:${PORT}`);
+  console.log(`   ➜ Health:  http://localhost:${PORT}/api/health\n`);
 });
 
 module.exports = app;

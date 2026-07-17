@@ -99,14 +99,14 @@ export default function Dashboard() {
     { title: 'Total Stock On Hand', value: stats?.totalStock, subtitle: 'At Shop stock point', icon: BarChart2, color: 'bg-emerald-600' },
     {
       title: 'Last Month Sales',
-      value: stats?.monthSales !== undefined ? `Rs. ${stats.monthSales.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` : '—',
+      value: stats?.monthSales !== undefined ? `AED: ${stats.monthSales.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` : '—',
       subtitle: 'Amount sold this month',
       icon: TrendingUp,
       color: 'bg-purple-600'
     },
     {
       title: 'Last One Year Sales',
-      value: stats?.yearSales !== undefined ? `Rs. ${stats.yearSales.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` : '—',
+      value: stats?.yearSales !== undefined ? `AED: ${stats.yearSales.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` : '—',
       subtitle: 'Amount sold this year',
       icon: TrendingUp,
       color: 'bg-orange-500'

@@ -1,7 +1,7 @@
 const { sql, getPool } = require('../config/db');
 
 // Name of the historical/old database on the same SQL Server instance
-const OLD_DB = 'ERP_OLD';
+const OLD_DB = process.env.DB_OLD_DATABASE || 'ERP_OLD';
 
 const cleanBarcode = (upc) => {
   if (!upc) return '';

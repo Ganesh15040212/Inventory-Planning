@@ -700,8 +700,8 @@ export default function SalesReport() {
                                 <td className="border-r border-slate-200 px-2 py-2 font-semibold text-slate-800 truncate max-w-[250px]" title={item.ItemName}>{item.ItemName}</td>
                                 <td className="border-r border-slate-200 px-2 py-2 text-center text-slate-500">{item.SizeName || '—'}</td>
                                 <td className="border-r border-slate-200 px-2 py-2 text-center font-semibold font-mono">{NUM(quantity, 0)}</td>
-                                <td className="border-r border-slate-200 px-2 py-2 text-right font-mono">₹{NUM(costAmount, 2)}</td>
-                                <td className="px-2 py-2 text-right font-mono font-bold text-emerald-600">₹{NUM(salesAmount, 2)}</td>
+                                <td className="border-r border-slate-200 px-2 py-2 text-right font-mono">{NUM(costAmount, 2)}</td>
+                                <td className="px-2 py-2 text-right font-mono font-bold text-emerald-600">{NUM(salesAmount, 2)}</td>
                               </tr>
                             );
                           })}
@@ -713,10 +713,10 @@ export default function SalesReport() {
                               {NUM(salesExcelData.reduce((acc, curr) => acc + (parseFloat(curr.Quantity) || 0), 0), 0)}
                             </td>
                             <td className="border-r border-slate-200 px-2 py-2 text-right font-mono text-slate-900">
-                              ₹{NUM(salesExcelData.reduce((acc, curr) => acc + ((parseFloat(curr.Quantity) || 0) * (parseFloat(curr.Cost) || 0)), 0), 2)}
+                              {NUM(salesExcelData.reduce((acc, curr) => acc + ((parseFloat(curr.Quantity) || 0) * (parseFloat(curr.Cost) || 0)), 0), 2)}
                             </td>
                             <td className="px-2 py-2 text-right font-mono text-emerald-600 font-extrabold">
-                              ₹{NUM(salesExcelData.reduce((acc, curr) => acc + (parseFloat(curr.SalesAmount) || 0), 0), 2)}
+                              {NUM(salesExcelData.reduce((acc, curr) => acc + (parseFloat(curr.SalesAmount) || 0), 0), 2)}
                             </td>
                           </tr>
                         </>
@@ -869,8 +869,8 @@ export default function SalesReport() {
                                 <td className="border-r border-slate-200 px-2 py-2 font-semibold text-slate-800 truncate max-w-[250px]" title={item.ItemName}>{item.ItemName}</td>
                                 <td className="border-r border-slate-200 px-2 py-2 text-center text-slate-500">{item.SizeName || '—'}</td>
                                 <td className="border-r border-slate-200 px-2 py-2 text-center font-semibold font-mono">{NUM(qty, 0)}</td>
-                                <td className="border-r border-slate-200 px-2 py-2 text-right font-mono">₹{NUM(retail, 2)}</td>
-                                <td className="px-2 py-2 text-right font-mono font-bold text-red-650">₹{NUM(cost, 2)}</td>
+                                <td className="border-r border-slate-200 px-2 py-2 text-right font-mono">{NUM(retail, 2)}</td>
+                                <td className="px-2 py-2 text-right font-mono font-bold text-red-650">{NUM(cost, 2)}</td>
                               </tr>
                             );
                           })}
@@ -882,10 +882,10 @@ export default function SalesReport() {
                               {NUM(stockExcelData.reduce((acc, curr) => acc + (parseFloat(curr.Qty) || 0), 0), 0)}
                             </td>
                             <td className="border-r border-slate-200 px-2 py-2 text-right font-mono text-emerald-600">
-                              ₹{NUM(stockExcelData.reduce((acc, curr) => acc + ((parseFloat(curr.Qty) || 0) * (parseFloat(curr.Retail) || 0)), 0), 2)}
+                              {NUM(stockExcelData.reduce((acc, curr) => acc + ((parseFloat(curr.Qty) || 0) * (parseFloat(curr.Retail) || 0)), 0), 2)}
                             </td>
                             <td className="px-2 py-2 text-right font-mono text-red-700 font-extrabold">
-                              ₹{NUM(stockExcelData.reduce((acc, curr) => acc + ((parseFloat(curr.Qty) || 0) * (parseFloat(curr.Cost) || 0)), 0), 2)}
+                              {NUM(stockExcelData.reduce((acc, curr) => acc + ((parseFloat(curr.Qty) || 0) * (parseFloat(curr.Cost) || 0)), 0), 2)}
                             </td>
                           </tr>
                         </>

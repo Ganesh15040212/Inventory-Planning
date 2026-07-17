@@ -2,6 +2,9 @@ const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const { sql, getPool } = require('../config/db');
 
+// Name of the historical/old database on the same SQL Server instance
+const OLD_DB = process.env.DB_OLD_DATABASE || 'ERP_OLD';
+
 // Helper: format decimal numbers safely
 const fmt = (v) => parseFloat(v || 0).toFixed(2);
 
@@ -231,7 +234,7 @@ const exportExcel = async (req, res) => {
         } else if (colIndex === 13 || colIndex === 14) {
           // Currency (Cost & Amount right aligned, formatted as Rupees)
           cell.alignment = { horizontal: 'right', vertical: 'middle' };
-          cell.numFmt = '[$₹-439]#,##0.00';
+          cell.numFmt = '#,##0.00';
           cell.font = { name: 'Arial', size: 9, bold: colIndex === 14, color: { argb: colIndex === 14 ? 'FF059669' : 'FF334155' } };
         } else if (colIndex === 15) {
           // Rotation (Right aligned, decimal format)
@@ -283,7 +286,7 @@ const exportExcel = async (req, res) => {
         cell.alignment = { horizontal: 'right', vertical: 'middle' };
       } else if (colIndex === 14) {
         cell.alignment = { horizontal: 'right', vertical: 'middle' };
-        cell.numFmt = '[$₹-439]#,##0.00';
+        cell.numFmt = '#,##0.00';
         cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF059669' } };
       } else if (colIndex === 5) {
         cell.numFmt = '#,##0;[Red](#,##0);"-"';
@@ -361,7 +364,7 @@ const exportExcel = async (req, res) => {
               cell.numFmt = '#,##0';
             } else if (colIndex === 6) {
               cell.alignment = { horizontal: 'right', vertical: 'middle' };
-              cell.numFmt = '[$₹-439]#,##0.00';
+              cell.numFmt = '#,##0.00';
             }
           }
         });
@@ -391,7 +394,7 @@ const exportExcel = async (req, res) => {
             cell.numFmt = '#,##0';
           } else if (colIndex === 6) {
             cell.alignment = { horizontal: 'right', vertical: 'middle' };
-            cell.numFmt = '[$₹-439]#,##0.00';
+            cell.numFmt = '#,##0.00';
           }
         }
       });
@@ -613,8 +616,8 @@ const exportPDF = async (req, res) => {
         Math.round(parseFloat(row.LastOneMonthSale) || 0).toString(),
         Math.round(parseFloat(row.AveragePerMonth) || 0).toString(),
         Math.round(parseFloat(row.LastOneYearSale) || 0).toLocaleString(),
-        `Rs. ${parseFloat(row.Cost || 0).toFixed(2)}`,
-        `Rs. ${parseFloat(row.PurchaseAmount || 0).toFixed(2)}`,
+        `${parseFloat(row.Cost || 0).toFixed(2)}`,
+        `${parseFloat(row.PurchaseAmount || 0).toFixed(2)}`,
         (parseFloat(row.Rotation) || 0).toFixed(2),
         row.SupplierName?.trim() || '—'
       ];
@@ -721,7 +724,7 @@ const exportPDF = async (req, res) => {
         valText = Math.round(totalAfter).toLocaleString('en-IN');
         doc.fillColor('#2563EB'); // Brand blue
       } else if (i === 13) {
-        valText = `Rs. ${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        valText = `${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         doc.fillColor('#059669'); // Green for Amount
       }
 
@@ -793,7 +796,7 @@ const exportPDF = async (req, res) => {
         doc.fillColor('#334155');
         doc.text(r.categoryName || '', svStartX + 4, currentY + 6, { width: svColWidths[0] - 8, align: 'left' });
         doc.text(Math.round(qty).toLocaleString('en-IN'), svStartX + svColWidths[0] + 4, currentY + 6, { width: svColWidths[1] - 8, align: 'center' });
-        doc.text(`Rs. ${val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, svStartX + svColWidths[0] + svColWidths[1] + 4, currentY + 6, { width: svColWidths[2] - 8, align: 'right' });
+        doc.text(`${val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, svStartX + svColWidths[0] + svColWidths[1] + 4, currentY + 6, { width: svColWidths[2] - 8, align: 'right' });
 
         currentY += svRowH;
       });
@@ -805,7 +808,7 @@ const exportPDF = async (req, res) => {
       doc.fillColor('#1E293B').font('Helvetica-Bold');
       doc.text('TOTAL', svStartX + 4, currentY + 6, { width: svColWidths[0] - 8, align: 'right' });
       doc.text(Math.round(totalQty).toLocaleString('en-IN'), svStartX + svColWidths[0] + 4, currentY + 6, { width: svColWidths[1] - 8, align: 'center' });
-      doc.text(`Rs. ${totalVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, svStartX + svColWidths[0] + svColWidths[1] + 4, currentY + 6, { width: svColWidths[2] - 8, align: 'right' });
+      doc.text(`${totalVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, svStartX + svColWidths[0] + svColWidths[1] + 4, currentY + 6, { width: svColWidths[2] - 8, align: 'right' });
 
       currentY += svRowH;
     }
@@ -867,7 +870,7 @@ const exportSalesExcel = async (req, res) => {
           ${filters1}
           UNION ALL
           SELECT sl2.ItemCode, sl2.Quantity, sl2.NetAmountDC, sl2.TaxAmountDC
-          FROM ERP_OLD.dbo.stmStockLedger sl2
+          FROM ${OLD_DB}.dbo.stmStockLedger sl2
           INNER JOIN mstitem mi2 ON sl2.ItemCode = mi2.code
           INNER JOIN mstitemdetail md2 ON mi2.code = md2.code
           WHERE sl2.Quantity < 0 AND sl2.VoucherTypeCode = 503 AND sl2.DocumentDate BETWEEN @fromDate AND @toDate
@@ -978,7 +981,7 @@ const exportSalesExcel = async (req, res) => {
           cell.alignment = { horizontal: 'left', vertical: 'middle' };
         } else if (colIndex === 6 || colIndex === 7) {
           cell.alignment = { horizontal: 'right', vertical: 'middle' };
-          cell.numFmt = '[$₹-439]#,##0.00';
+          cell.numFmt = '#,##0.00';
           if (colIndex === 7) cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF059669' } };
         } else if (colIndex === 5) {
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -1007,13 +1010,13 @@ const exportSalesExcel = async (req, res) => {
 
     const costTotalCell = sheet.getCell(`F${totalsRowIndex}`);
     costTotalCell.value = { formula: `SUM(F4:F${lastRowIndex})` };
-    costTotalCell.numFmt = '[$₹-439]#,##0.00';
+    costTotalCell.numFmt = '#,##0.00';
     costTotalCell.font = { name: 'Arial', bold: true, size: 9, color: { argb: 'FF1E293B' } };
     costTotalCell.alignment = { horizontal: 'right', vertical: 'middle' };
 
     const salesTotalCell = sheet.getCell(`G${totalsRowIndex}`);
     salesTotalCell.value = { formula: `SUM(G4:G${lastRowIndex})` };
-    salesTotalCell.numFmt = '[$₹-439]#,##0.00';
+    salesTotalCell.numFmt = '#,##0.00';
     salesTotalCell.font = { name: 'Arial', bold: true, size: 9, color: { argb: 'FF059669' } };
     salesTotalCell.alignment = { horizontal: 'right', vertical: 'middle' };
 
@@ -1088,7 +1091,7 @@ const exportSalesPDF = async (req, res) => {
           ${filters1}
           UNION ALL
           SELECT sl2.ItemCode, sl2.Quantity, sl2.NetAmountDC, sl2.TaxAmountDC
-          FROM ERP_OLD.dbo.stmStockLedger sl2
+          FROM ${OLD_DB}.dbo.stmStockLedger sl2
           INNER JOIN mstitem mi2 ON sl2.ItemCode = mi2.code
           INNER JOIN mstitemdetail md2 ON mi2.code = md2.code
           WHERE sl2.Quantity < 0 AND sl2.VoucherTypeCode = 503 AND sl2.DocumentDate BETWEEN @fromDate AND @toDate
@@ -1179,8 +1182,8 @@ const exportSalesPDF = async (req, res) => {
         row.ItemName?.trim() || '—',
         row.SizeName?.trim() || '—',
         Math.round(quantity).toString(),
-        `Rs. ${costAmount.toFixed(2)}`,
-        `Rs. ${salesAmount.toFixed(2)}`
+        `${costAmount.toFixed(2)}`,
+        `${salesAmount.toFixed(2)}`
       ];
 
       // Measure dynamic row height
@@ -1263,7 +1266,7 @@ const exportSalesPDF = async (req, res) => {
 
     // Cost Amount Total
     doc.rect(currentX, currentY, colWidths[5], totalsRowHeight).stroke('#E2E8F0');
-    doc.text(`Rs. ${totalCostAmt.toFixed(2)}`, currentX + 2, currentY + 7, {
+    doc.text(`${totalCostAmt.toFixed(2)}`, currentX + 2, currentY + 7, {
       width: colWidths[5] - 4,
       align: 'right'
     });
@@ -1271,7 +1274,7 @@ const exportSalesPDF = async (req, res) => {
 
     // Sales Amount Total
     doc.rect(currentX, currentY, colWidths[6], totalsRowHeight).stroke('#E2E8F0');
-    doc.fillColor('#059669').text(`Rs. ${totalSalesAmt.toFixed(2)}`, currentX + 2, currentY + 7, {
+    doc.fillColor('#059669').text(`${totalSalesAmt.toFixed(2)}`, currentX + 2, currentY + 7, {
       width: colWidths[6] - 4,
       align: 'right'
     });
@@ -1332,7 +1335,7 @@ const getSalesData = async (req, res) => {
           ${filters1}
           UNION ALL
           SELECT sl2.ItemCode, sl2.Quantity, sl2.NetAmountDC, sl2.TaxAmountDC
-          FROM ERP_OLD.dbo.stmStockLedger sl2
+          FROM ${OLD_DB}.dbo.stmStockLedger sl2
           INNER JOIN mstitem mi2 ON sl2.ItemCode = mi2.code
           INNER JOIN mstitemdetail md2 ON mi2.code = md2.code
           WHERE sl2.Quantity < 0 AND sl2.VoucherTypeCode = 503 AND sl2.DocumentDate BETWEEN @fromDate AND @toDate
@@ -1503,13 +1506,13 @@ const getCategoryStats = async (req, res) => {
                 WHERE Rate > 0
                 UNION ALL
                 SELECT ItemCode, Rate, HeaderCode, 'OLD' AS src
-                FROM ERP_OLD.dbo.tranPurchaseDetail
+                FROM ${OLD_DB}.dbo.tranPurchaseDetail
                 WHERE Rate > 0
               ) pd
               INNER JOIN (
                 SELECT Code, DocumentDate, 'NEW' AS src FROM tranPurchaseHeader
                 UNION ALL
-                SELECT Code, DocumentDate, 'OLD' AS src FROM ERP_OLD.dbo.tranPurchaseHeader
+                SELECT Code, DocumentDate, 'OLD' AS src FROM ${OLD_DB}.dbo.tranPurchaseHeader
               ) ph ON pd.HeaderCode = ph.Code AND pd.src = ph.src
               WHERE ph.DocumentDate <= @targetDate
             ) p
@@ -1579,7 +1582,7 @@ const exportStockValuationExcel = async (req, res) => {
       { key: 'value',    width: 18 }
     ];
 
-    const headerRow = sheet.addRow({ category: 'CATEGORY', qty: 'QTY', value: 'VALUE (₹)' });
+    const headerRow = sheet.addRow({ category: 'CATEGORY', qty: 'QTY', value: 'VALUE' });
     headerRow.height = 22;
     headerRow.eachCell(cell => {
       cell.font      = { name: 'Arial', bold: true, size: 10, color: { argb: 'FF1E293B' } };
@@ -1618,7 +1621,7 @@ const exportStockValuationExcel = async (req, res) => {
           cell.numFmt    = '#,##0';
         } else if (colIdx === 3) {
           cell.alignment = { horizontal: 'right', vertical: 'middle' };
-          cell.numFmt    = '[$₹-439]#,##0.00';
+          cell.numFmt    = '#,##0.00';
         }
       });
     });
@@ -1637,7 +1640,7 @@ const exportStockValuationExcel = async (req, res) => {
       };
       if (colIdx === 1) { cell.alignment = { horizontal: 'right', vertical: 'middle' }; }
       else if (colIdx === 2) { cell.alignment = { horizontal: 'center', vertical: 'middle' }; cell.numFmt = '#,##0'; }
-      else if (colIdx === 3) { cell.alignment = { horizontal: 'right',  vertical: 'middle' }; cell.numFmt = '[$₹-439]#,##0.00'; }
+      else if (colIdx === 3) { cell.alignment = { horizontal: 'right',  vertical: 'middle' }; cell.numFmt = '#,##0.00'; }
     });
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -1693,7 +1696,7 @@ const exportStockValuationPDF = async (req, res) => {
 
     drawCell('CATEGORY', startX,               y, colW[0], { bg: '#F1F5F9', bold: true });
     drawCell('QTY',      startX + colW[0],     y, colW[1], { bg: '#F1F5F9', bold: true });
-    drawCell('VALUE (Rs.)', startX + colW[0] + colW[1], y, colW[2], { bg: '#F1F5F9', bold: true });
+    drawCell('VALUE', startX + colW[0] + colW[1], y, colW[2], { bg: '#F1F5F9', bold: true });
     y += rowH;
 
     // ── Data rows
@@ -1710,14 +1713,14 @@ const exportStockValuationPDF = async (req, res) => {
 
       drawCell(r.categoryName, startX,               y, colW[0], { bg, align: 'left' });
       drawCell(fmtNum(qty),    startX + colW[0],     y, colW[1], { bg });
-      drawCell(`Rs. ${fmtCur(value)}`, startX + colW[0] + colW[1], y, colW[2], { bg });
+      drawCell(`${fmtCur(value)}`, startX + colW[0] + colW[1], y, colW[2], { bg });
       y += rowH;
     });
 
     // ── Totals row
     drawCell('TOTAL', startX,               y, colW[0], { bg: '#DBEAFE', bold: true, align: 'right' });
     drawCell(fmtNum(totalQty), startX + colW[0], y, colW[1], { bg: '#DBEAFE', bold: true });
-    drawCell(`Rs. ${fmtCur(totalValue)}`, startX + colW[0] + colW[1], y, colW[2], { bg: '#DBEAFE', bold: true });
+    drawCell(`${fmtCur(totalValue)}`, startX + colW[0] + colW[1], y, colW[2], { bg: '#DBEAFE', bold: true });
 
     doc.end();
   } catch (err) {
@@ -1807,13 +1810,13 @@ const getOverallStockData = async (req, res) => {
               WHERE Rate > 0
               UNION ALL
               SELECT ItemCode, Rate, HeaderCode, 'OLD' AS src
-              FROM ERP_OLD.dbo.tranPurchaseDetail
+              FROM ${OLD_DB}.dbo.tranPurchaseDetail
               WHERE Rate > 0
             ) pd
             INNER JOIN (
               SELECT Code, DocumentDate, 'NEW' AS src FROM tranPurchaseHeader
               UNION ALL
-              SELECT Code, DocumentDate, 'OLD' AS src FROM ERP_OLD.dbo.tranPurchaseHeader
+              SELECT Code, DocumentDate, 'OLD' AS src FROM ${OLD_DB}.dbo.tranPurchaseHeader
             ) ph ON pd.HeaderCode = ph.Code AND pd.src = ph.src
             WHERE ph.DocumentDate <= @targetDate
           ) p
@@ -1916,13 +1919,13 @@ const exportOverallStockExcel = async (req, res) => {
               WHERE Rate > 0
               UNION ALL
               SELECT ItemCode, Rate, HeaderCode, 'OLD' AS src
-              FROM ERP_OLD.dbo.tranPurchaseDetail
+              FROM ${OLD_DB}.dbo.tranPurchaseDetail
               WHERE Rate > 0
             ) pd
             INNER JOIN (
               SELECT Code, DocumentDate, 'NEW' AS src FROM tranPurchaseHeader
               UNION ALL
-              SELECT Code, DocumentDate, 'OLD' AS src FROM ERP_OLD.dbo.tranPurchaseHeader
+              SELECT Code, DocumentDate, 'OLD' AS src FROM ${OLD_DB}.dbo.tranPurchaseHeader
             ) ph ON pd.HeaderCode = ph.Code AND pd.src = ph.src
             WHERE ph.DocumentDate <= @targetDate
           ) p
@@ -1965,8 +1968,8 @@ const exportOverallStockExcel = async (req, res) => {
       { header: 'ITEM NAME', key: 'ItemName', width: 35 },
       { header: 'SIZE NAME', key: 'SizeName', width: 14 },
       { header: 'QUANTITY', key: 'Qty', width: 12 },
-      { header: 'RETAIL (Rs.)', key: 'Retail', width: 16 },
-      { header: 'COST (Rs.)', key: 'Cost', width: 16 }
+      { header: 'RETAIL', key: 'Retail', width: 16 },
+      { header: 'COST', key: 'Cost', width: 16 }
     ];
 
     sheet.columns = headers.map(h => ({ key: h.key, width: h.width }));
@@ -2026,7 +2029,7 @@ const exportOverallStockExcel = async (req, res) => {
           cell.numFmt = '#,##0';
         } else if (colIndex === 6 || colIndex === 7) {
           cell.alignment = { horizontal: 'right', vertical: 'middle' };
-          cell.numFmt = '[$₹-439]#,##0.00';
+          cell.numFmt = '#,##0.00';
           if (colIndex === 7) cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF991B1B' } }; // cost in red
         } else {
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -2052,14 +2055,14 @@ const exportOverallStockExcel = async (req, res) => {
     // Calculate sum of retail value (retail * qty)
     const retailTotalCell = sheet.getCell(`F${totalsRowIndex}`);
     retailTotalCell.value = { formula: `SUMPRODUCT(E4:E${lastRowIndex},F4:F${lastRowIndex})` };
-    retailTotalCell.numFmt = '[$₹-439]#,##0.00';
+    retailTotalCell.numFmt = '#,##0.00';
     retailTotalCell.font = { name: 'Arial', bold: true, size: 9, color: { argb: 'FF059669' } };
     retailTotalCell.alignment = { horizontal: 'right', vertical: 'middle' };
 
     // Calculate sum of cost value (cost * qty)
     const costTotalCell = sheet.getCell(`G${totalsRowIndex}`);
     costTotalCell.value = { formula: `SUMPRODUCT(E4:E${lastRowIndex},G4:G${lastRowIndex})` };
-    costTotalCell.numFmt = '[$₹-439]#,##0.00';
+    costTotalCell.numFmt = '#,##0.00';
     costTotalCell.font = { name: 'Arial', bold: true, size: 9, color: { argb: 'FF991B1B' } };
     costTotalCell.alignment = { horizontal: 'right', vertical: 'middle' };
 
@@ -2165,13 +2168,13 @@ const exportOverallStockPDF = async (req, res) => {
               WHERE Rate > 0
               UNION ALL
               SELECT ItemCode, Rate, HeaderCode, 'OLD' AS src
-              FROM ERP_OLD.dbo.tranPurchaseDetail
+              FROM ${OLD_DB}.dbo.tranPurchaseDetail
               WHERE Rate > 0
             ) pd
             INNER JOIN (
               SELECT Code, DocumentDate, 'NEW' AS src FROM tranPurchaseHeader
               UNION ALL
-              SELECT Code, DocumentDate, 'OLD' AS src FROM ERP_OLD.dbo.tranPurchaseHeader
+              SELECT Code, DocumentDate, 'OLD' AS src FROM ${OLD_DB}.dbo.tranPurchaseHeader
             ) ph ON pd.HeaderCode = ph.Code AND pd.src = ph.src
             WHERE ph.DocumentDate <= @targetDate
           ) p
@@ -2194,7 +2197,7 @@ const exportOverallStockPDF = async (req, res) => {
 
     const colWidths = [30, 110, 282, 80, 70, 100, 110];
     const aligns = ['center', 'center', 'left', 'center', 'center', 'right', 'right'];
-    const headers = ['SL', 'BARCODE', 'ITEM NAME', 'SIZE NAME', 'QUANTITY', 'RETAIL (Rs.)', 'COST (Rs.)'];
+    const headers = ['SL', 'BARCODE', 'ITEM NAME', 'SIZE NAME', 'QUANTITY', 'RETAIL', 'COST'];
 
     const targetFormatted = new Date(targetDate).toLocaleDateString('en-GB');
     const todayStr = new Date().toLocaleDateString('en-GB');
@@ -2242,8 +2245,8 @@ const exportOverallStockPDF = async (req, res) => {
         row.ItemName?.trim() || '—',
         row.SizeName?.trim() || '—',
         Math.round(qty).toString(),
-        `Rs. ${retail.toFixed(2)}`,
-        `Rs. ${cost.toFixed(2)}`
+        `${retail.toFixed(2)}`,
+        `${cost.toFixed(2)}`
       ];
 
       let dynamicRowHeight = 15;
@@ -2324,7 +2327,7 @@ const exportOverallStockPDF = async (req, res) => {
 
     // Retail Total
     doc.rect(currentX, currentY, colWidths[5], totalsRowHeight).stroke('#E2E8F0');
-    doc.fillColor('#059669').text(`Rs. ${totalRetailVal.toFixed(2)}`, currentX + 2, currentY + 7, {
+    doc.fillColor('#059669').text(`${totalRetailVal.toFixed(2)}`, currentX + 2, currentY + 7, {
       width: colWidths[5] - 4,
       align: 'right'
     });
@@ -2332,7 +2335,7 @@ const exportOverallStockPDF = async (req, res) => {
 
     // Cost Total
     doc.rect(currentX, currentY, colWidths[6], totalsRowHeight).stroke('#E2E8F0');
-    doc.fillColor('#991B1B').text(`Rs. ${totalCostVal.toFixed(2)}`, currentX + 2, currentY + 7, {
+    doc.fillColor('#991B1B').text(`${totalCostVal.toFixed(2)}`, currentX + 2, currentY + 7, {
       width: colWidths[6] - 4,
       align: 'right'
     });
